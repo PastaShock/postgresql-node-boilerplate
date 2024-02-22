@@ -24,7 +24,7 @@ export const getClient = () => {
 		client.lastQuery = args;
 		return query.apply(client, args)
 	}
-	client.telease =  () => {
+	client.release =  () => {
 		// clear timeout 
 		clearTimeout(timeout);
 		//set the methods back to their old un-monkey-patched version

@@ -1,4 +1,4 @@
-requite('dotenv').config();
+require('dotenv').config();
 
 const port = process.env.PORT
 const express = require('express');
@@ -9,18 +9,19 @@ const expressSession = require('express-session');
 const app = new express();
 
 // routes
-const userRoute = require('./routes/user.route');
-const authRoute = require('./routes/auth.route');
+// const userRoute = require('./routes/users.js');
+const dataRoutes = require('./routes/index.js');
+const authRoute = require('./routes/auth.js');
 
 // middlewares
 const authMiddleware = require('./middlewares/auth.middleware');
 
 //api
-const apiUserRoute = require('./api/routes/user.route');
+const apiUserRoute = require('./api/routes/user.js');
 
 app.use('/static', express.static('public'));
 app.use(express.json())
-app.use(express.uerlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser(process.env.SESSION_SECRET));
 
 app.set('view engine', 'pug');
@@ -33,7 +34,7 @@ app.get('/', (req, res) => {
 });
 
 //use routes
-app.use('/users', authMiddleware,.checkToken, authMiddleware.protectedRoute, userRoute);
+app.use('/users', authMiddleware, checkToken, authMiddleware.protectedRoute, dataRoutes);
 app.use('/auth', authRoute);
 
 //use API
