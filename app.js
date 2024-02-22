@@ -1,45 +1,69 @@
 require('dotenv').config();
 
-const port = process.env.PORT
-const express = require('express');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const expressSession = require('express-session');
+const initOptions = {
+	capSQL: true
+}
 
-const app = new express();
+const pgp = require('pg-promise')(initOptions)
 
-// routes
-// const userRoute = require('./routes/users.js');
-const dataRoutes = require('./routes/index.js');
-const authRoute = require('./routes/auth.js');
+const conString = {
+	host: process.env.DB_HOST,
+	port: process.env.DB_PORT,
+	database: process.env.DB_NAME,
+	user: process.env.DB_USER,
+	password: process.env.DB_PASS
+}
 
-// middlewares
-const authMiddleware = require('./middlewares/auth.middleware');
+const db = pgp(conString)
 
-//api
-const apiUserRoute = require('./api/routes/user.js');
+db.one('SELECT $1 AS value', '2800e06c-6617-4534-b9bd-56497576aa7b')
+	.then((data) => {
+		console.log('DATA:', data.value)
+	})
+	.catch((error) => {
+		console.log('ERROR:', error)
+	})
 
-app.use('/static', express.static('public'));
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(cookieParser(process.env.SESSION_SECRET));
+// const port = process.env.PORT
+// const express = require('express');
+// const bodyParser = require('body-parser');
+// const cookieParser = require('cookie-parser');
+// const expressSession = require('express-session');
 
-app.set('view engine', 'pug');
-app.set('views', './views');
+// const app = new express();
 
-app.get('/', (req, res) => {
-	res.render('index', {
-		name: 'name'
-	});
-});
+// // routes
+// // const userRoute = require('./routes/users.js');
+// const dataRoutes = require('./routes/index.js');
+// const authRoute = require('./routes/auth.js');
 
-//use routes
-app.use('/users', authMiddleware, checkToken, authMiddleware.protectedRoute, dataRoutes);
-app.use('/auth', authRoute);
+// // middlewares
+// const authMiddleware = require('./middlewares/auth.middleware');
 
-//use API
-app.use('/api/users', apiUserRoute);
+// //api
+// const apiUserRoute = require('./api/routes/user.js');
 
-app.listen(port, () => {
-	console.log('Server is running on port: ' + port);
-});
+// app.use('/static', express.static('public'));
+// app.use(express.json())
+// app.use(express.urlencoded({ extended: true }))
+// app.use(cookieParser(process.env.SESSION_SECRET));
+
+// app.set('view engine', 'pug');
+// app.set('views', './views');
+
+// app.get('/', (req, res) => {
+// 	res.render('index', {
+// 		name: 'name'
+// 	});
+// });
+
+// //use routes
+// app.use('/users', authMiddleware, checkToken, authMiddleware.protectedRoute, dataRoutes);
+// app.use('/auth', authRoute);
+
+// //use API
+// app.use('/api/users', apiUserRoute);
+
+// app.listen(port, () => {
+// 	console.log('Server is running on port: ' + port);
+// });
