@@ -1,11 +1,13 @@
-import users from './users.js'
-import orders from './orders.js'
-import privileges from './privileges.js'
-import user_priv from './user_priv.js'
+// requires
+const router = require('express').Router()
+const apiRoutes = require('./api')
 
-const mountRoutes = (app) => {
-	app.use('/users', users)
-	app.use('/orders', orders)
-}
+// set the routing for the api
+router.use('/api', apiRoutes)
 
-export default mountRoutes
+// default/404 page
+router.use((req, res) => {
+	res.status(404).send(`file not found`)
+})
+
+module.exports = router
