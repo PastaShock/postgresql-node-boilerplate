@@ -3,6 +3,7 @@ const router = require('express').Router()
 
 // import api endpoints
 const userRoutes = require('./users')
+
 // const privilegeRoutes = require('./privileges')
 // const printerRoutes = require('./printers')
 // const logoRoutes = require('./logos')
@@ -14,5 +15,10 @@ router.use('/users', userRoutes)
 // router.use('/printers', printerRoutes)
 // router.use('/logos', logoRoutes)
 // router.use('/userPrivs', userPrivRoutes)
+
+router.get('/info', (req, res) => {
+	res.json({ info: 'NEPP stack' })
+    console.log('get route /api')
+})
 
 module.exports = router
