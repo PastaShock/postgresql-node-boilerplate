@@ -17,7 +17,14 @@
     "promise": "^8.3.0",
     "pug": "^3.0.2"
   },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
   "engines": {
     "node": ">=16.0.0"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "devstart": "nodemon app.js"
   }
 }
