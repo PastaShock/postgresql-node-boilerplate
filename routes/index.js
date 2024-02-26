@@ -1,19 +1,29 @@
 // requires
 const router = require('express').Router()
-const apiRoutes = require('./api')
+
+// import api endpoints
 const userRoutes = require('./users')
 
-// set the routing for the api
-router.use('/api', apiRoutes)
-router.use('/users', userRoutes)
+// const privilegeRoutes = require('./privileges')
+// const printerRoutes = require('./printers')
+// const logoRoutes = require('./logos')
+// const userPrivRoutes = require('./userPrivs')
 
-router.get('/', (req, res) => {
-	res.json({ info: 'work in progress' })
+// set routes to prev est end points
+router.use('/users', userRoutes)
+// router.use('/privileges', privilegeRoutes)
+// router.use('/printers', printerRoutes)
+// router.use('/logos', logoRoutes)
+// router.use('/userPrivs', userPrivRoutes)
+
+router.get('/', (req, res, next) => {
+    res.render('index', {title: 'Snap Warehouse'})
+    console.log('got route /')
 })
 
-// default/404 page
-// router.use((req, res) => {
-// 	res.status(404).send(`file not found`)
-// })
+router.get('/info', (req, res) => {
+    res.render('info', {title: 'information'})
+    console.log('get route /info')
+})
 
 module.exports = router

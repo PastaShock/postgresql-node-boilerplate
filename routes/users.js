@@ -1,13 +1,16 @@
 const router = require('express').Router()
-const { db } = require('../db/connection')
+const userController = require('../models/users')
 
-router.get('/', (req, res, next) => {
-	res.json({ msg: "user route front end" })
-})
+// router.route('/users')
+//     .get((req, res) => {
+//         res.json('get a random user')
+//         console.log('get route /api/users')
+//     })
 
-router.get('/:id', async (req, res, next) => {
-	const result = await db.query('SELECT * FROM users WHERE user_id = $1', [req.params.id])
-	res.send (result.rows[0])
-})
+router.get('/users/:id', userController.getSingle)
+router.get('/users', userController.getAll)
+router.post('/users', userController.postSingle)
+router.put('/users', userController.updateSingle)
+router.delete('/users', userController.deleteSingle)
 
 module.exports = router
