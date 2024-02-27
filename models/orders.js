@@ -32,8 +32,15 @@ const getSingle = (req, res) => {
 // which relates to the orders table on orders.order_id
 // With a left append jobs where job id = x with orders with jobs.order_id on orders.order_id 
 const postSingle = (req, res) => {
+    //
+    // HERE: I should check to see how data from the json/response is handled so I could potentially save myself some typeing time
+    //
     const { orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall } = req.body
-    db.query('INSERT INTO orders ( orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall ) VALUES ($1, $2, $3, $4) RETURNING *',
+    db.query(`INSERT INTO orders (
+            order_id, sales_order_id, fundraiser_id, fundraiser_name, placed_on_date, order_type, order_notes, logo_script, primary_color, secondary_color, logo_id, logo_count_digital, logo_count_digital_small
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+            ) RETURNING *`,
         [ orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall ],
         (error, result) => {
         if (error) {
@@ -44,9 +51,23 @@ const postSingle = (req, res) => {
 }
 const updateSingle = (req, res) => {
     const id = req.params.id
-    const { name, email, phone, hired } = req.body
-    db.query('UPDATE orders SET name = $1, email = $2, phone = $3, hired = $4',
-        [name, email, phone, hired],
+    const { orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall } = req.body
+    db.query(`
+        UPDATE orders SET
+            order_id = $1,
+            sales_order_id = $2,
+            fund_id = $3,
+            fundraiser_name = $4,
+            placed_on_date = $5,
+            order_type = $6,
+            logo_script = $7,
+            primary_color = $8,
+            secondary_color = $9,
+            logo_id = $10,
+            logo_count_digital = $11,
+            logo_count_digital_small = $12
+            `,
+        [ orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall ],
         (error, result) => {
         if (error) {
             throw error
