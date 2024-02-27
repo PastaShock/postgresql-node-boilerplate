@@ -1,0 +1,31 @@
+insert into orders (
+    order_id,
+	sales_order_id,
+	fund_id,
+	fundraiser_name,
+	placed_on_date,
+	date_downloaded,
+	date_printed,
+	order_type,
+	logo_script,
+	primary_color,
+	secondary_color,
+	logo_id,
+	logo_count_digital,
+	logo_count_digital_small
+    ) values (
+    '21158014',
+	'SO108417',
+	190229,
+	'Patrick Henry HS Boys Basketball',
+	'2/26/2024 8:00 am',
+	'Mon Feb 26 2024 12:30:54 PST',
+	'Mon Feb 26 2024 12:52:56 PST',
+	'Reorder',
+	'Patrick Henry | Basketball',
+	'Dark Green #055E35',
+	'Athletic Gold #EBBA30',
+	'Custom',
+	1,
+	0
+);
