@@ -1,3 +1,4 @@
+const { response } = require('express')
 const { db } = require('../db/connection')
 
 // list all orders (not a good idea except for testing)
@@ -35,18 +36,75 @@ const postSingle = (req, res) => {
     //
     // HERE: I should check to see how data from the json/response is handled so I could potentially save myself some typeing time
     //
-    const { orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall } = req.body
+    const {
+        orderId,
+        salesOrder,
+        magentoId,
+        fundId,
+        fundName,
+        placedDate,
+        downloadDate,
+        printDate,
+        orderType,
+        orderNotes,
+        logoScript,
+        priColor,
+        secColor,
+        logoId,
+        digital,
+        digiSmall,
+        printUser,
+        jobId,
+        printer
+        } = req.body
     db.query(`INSERT INTO orders (
-            order_id, sales_order_id, fundraiser_id, fundraiser_name, placed_on_date, order_type, order_notes, logo_script, primary_color, secondary_color, logo_id, logo_count_digital, logo_count_digital_small
+        order_id,
+        sales_order_id,
+        magento_id,
+        fundraiser_id,
+        fundraiser_name,
+        placed_on_date,
+        date_downloaded,
+        date_printed,
+        order_type,
+        order_notes,
+        logo_script,
+        primary_color,
+        secondary_color,
+        logo_id,
+        logo_count_digital,
+        logo_count_digital_small,
+        print_user_name,
+        print_job_id,
+        print_device
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
             ) RETURNING *`,
-        [ orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall ],
+        [ orderId,
+		 salesOrder,
+		 magentoId,
+		 fundId,
+		 fundName,
+		 placedDate,
+		 downloadDate,
+		 printDate,
+		 orderType,
+		 orderNotes,
+		 logoScript,
+		 priColor,
+		 secColor,
+		 logoId,
+		 digital,
+		 digiSmall,
+		 printUser,
+		 jobId,
+		 printer ],
         (error, result) => {
-        if (error) {
-            throw error
-        }
-        res.status(201).send(`order added with ID: ${result.rows[0].id}`)
+            if (error) {
+                res.status(200).send(`${error.detail} : ${JSON.stringify(req.body)}`)
+            } else {
+                res.status(201).send(`order added with ID: ${orderId}`)
+            }
     } )
 }
 const updateSingle = (req, res) => {
@@ -72,7 +130,7 @@ const updateSingle = (req, res) => {
         if (error) {
             throw error
         }
-        res.status(200).send(`order updated with ID: ${result.rows[0].id}`)
+        res.status(200).send(`order updated with ID: ${result.rows.id}`)
     } )
 }
 const deleteSingle = (req, res) => {
@@ -83,7 +141,21 @@ const deleteSingle = (req, res) => {
         if (error) {
             throw error
         }
-        res.status(200).send(`order deleted with ID: ${result.rows[0].id}`)
+        res.status(200).send(`order deleted with ID: ${id}`)
+    } )
+}
+const postMany = (req, res) => {
+    const { orderId, salesOrder, magentoId, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall } = req.body
+    db.query(`INSERT INTO orders ( order_id, sales_order_id, magento_id, fundraiser_id, fundraiser_name, placed_on_date, order_type, order_notes, logo_script, primary_color, secondary_color, logo_id, logo_count_digital, logo_count_digital_small
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+            ) RETURNING *`,
+        [ orderId, salesOrder, magentoId, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall ],
+        (error, result) => {
+        if (error) {
+            throw error
+        }
+        res.status(201).send(`order added with ID: ${result.rows[0].id}`)
     } )
 }
 
@@ -92,5 +164,6 @@ module.exports = {
     getSingle,
     postSingle,
     updateSingle,
-    deleteSingle
+    deleteSingle,
+    postMany
 }

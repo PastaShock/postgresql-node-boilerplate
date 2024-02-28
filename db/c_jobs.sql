@@ -3,5 +3,6 @@ create table jobs (
     date_downloaded date NOT NULL,
     date_printed date NOT NULL,
     print_user UUID NOT NULL,
-    print_device integer NOT NULL
+    print_device integer NOT NULL,
+    print_queue varchar (1)
 );
