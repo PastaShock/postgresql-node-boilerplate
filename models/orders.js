@@ -1,5 +1,7 @@
 const { response } = require('express')
 const { db } = require('../db/connection')
+const { updateProductByID, postProductByID, errHandler } = require('../index')
+const fs = require('fs')
 
 // list all orders (not a good idea except for testing)
 const getAll = (req, res) => {
@@ -10,15 +12,36 @@ const getAll = (req, res) => {
         res.status(200).json(result.rows)
     } )
 }
-
+const getMany = (req, res) => {
+    var ordArr = []
+    req.body.forEach( id => {
+        db.query(`SELECT *, orders.order_ns_url FROM orders WHERE order_id = $1`, [id], (error, result) => {
+            if (error) throw error
+            if (result.rows.length == '') {
+                res.status(404).send(404)
+            } else {
+                // console.log(result.rows[0])
+                // res.status(200).json(result.rows[0])
+                ordArr.push(result.rows[0])
+                return result.rows[0]
+            }
+        })
+    })
+    console.log(ordArr)
+    res.status(200).json(ordArr)
+}
 // get a single order by order_id / id
 const getSingle = (req, res) => {
     const id = req.params.id
-    db.query('SELECT * FROM orders WHERE order_id = $1;', [id], (error, result) => {
+    db.query('SELECT *, orders.order_ns_url FROM orders WHERE order_id = $1;', [id], (error, result) => {
         if (error) {
             throw error
         }
-        res.status(200).json(result.rows)
+        if (result.rows.length == '' ) {
+            res.status(404).send('404')
+        } else {
+            res.status(200).json(result.rows)
+        }
     } )
 }
 // fixed data in the order row should be orderid (key), salesOrderId (key?), fundid, magentoId (key?), fundName, orderType, orderNotes, digital, digiSmall
@@ -101,37 +124,27 @@ const postSingle = (req, res) => {
 		 printer ],
         (error, result) => {
             if (error) {
-                res.status(200).send(`${error.detail} : ${JSON.stringify(req.body)}`)
+                console.log(req.body)
+                errorDuplicate = `error: duplicate key value violates unique constraint "orders_pkey"`
+                if (error == errorDuplicate) {
+                    res.status(200).send('duplicate')
+                } else {
+                    res.status(200).send(`error: ${error} : ${JSON.stringify(req.body)}`)
+                }
             } else {
                 res.status(201).send(`order added with ID: ${orderId}`)
             }
     } )
 }
 const updateSingle = (req, res) => {
-    const id = req.params.id
-    const { orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall } = req.body
-    db.query(`
-        UPDATE orders SET
-            order_id = $1,
-            sales_order_id = $2,
-            fund_id = $3,
-            fundraiser_name = $4,
-            placed_on_date = $5,
-            order_type = $6,
-            logo_script = $7,
-            primary_color = $8,
-            secondary_color = $9,
-            logo_id = $10,
-            logo_count_digital = $11,
-            logo_count_digital_small = $12
-            `,
-        [ orderId, salesOrder, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall ],
-        (error, result) => {
-        if (error) {
-            throw error
-        }
-        res.status(200).send(`order updated with ID: ${result.rows.id}`)
-    } )
+    var query = updateProductByID('order', req.params.id, req.body)
+    var colValues = Object.keys(req.body).map(function (key) {
+        return req.body[key]
+    }) 
+    db.query(query, colValues,(error, result) => {
+        if (error) throw error
+        res.status(200).send(`order updated with ID: ${id}: ${JSON.stringify(req.body)}\nresult: ${result}`)
+    })
 }
 const deleteSingle = (req, res) => {
     const id = req.params.id
@@ -144,26 +157,62 @@ const deleteSingle = (req, res) => {
         res.status(200).send(`order deleted with ID: ${id}`)
     } )
 }
+const updateTest = (req, res) => {
+    var query = updateProductByID('order', req.params.id, req.body)
+    var colValues = Object.keys(req.body).map(function (key) {
+        return req.body[key]
+    }) 
+    db.query(query, colValues,(error, result) => {
+        if (error) throw error
+        res.status(200).send(result.rows[0])
+    })
+}
 const postMany = (req, res) => {
-    const { orderId, salesOrder, magentoId, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall } = req.body
-    db.query(`INSERT INTO orders ( order_id, sales_order_id, magento_id, fundraiser_id, fundraiser_name, placed_on_date, order_type, order_notes, logo_script, primary_color, secondary_color, logo_id, logo_count_digital, logo_count_digital_small
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
-            ) RETURNING *`,
-        [ orderId, salesOrder, magentoId, fundId, fundName, placedDate, orderType, orderNotes, logoScript, priColor, secColor, logoId, digital, digiSmall ],
-        (error, result) => {
-        if (error) {
-            throw error
-        }
-        res.status(201).send(`order added with ID: ${result.rows[0].id}`)
-    } )
+    // req.body should be an array, iterate through each obj in 
+    req.body.forEach(order => {
+        // create query with function giving table name and object
+        var query = postProductByID('order', order)
+        // create an array of the values from the object
+        var colValues = Object.keys(order).map(function (key) {
+            return order[key]
+        }) 
+        db.query(query, colValues, (error, result) => {
+            if (error) {
+                errHandler('postMany', req.body, 'severe', error)
+            }
+        })
+    });
+    res.status(200).send(res.rows)
 }
 
 module.exports = {
     getAll,
+    getMany,
     getSingle,
     postSingle,
+    postMany,
     updateSingle,
     deleteSingle,
-    postMany
+    updateTest
 }
+        // [{ 
+        //     order_id: orderId,
+        //     sales_order_id: salesOrder,
+        //     magento_id: magentoId,
+        //     fundraiser_id: fundId,
+        //     fundraiser_name: fundName,
+        //     placed_on_date: placedDate,
+        //     date_downloaded: downloadDate,
+        //     date_printed: printDate,
+        //     order_notes: orderNotes,
+        //     order_type: orderType,
+        //     logo_script: logoScript,
+        //     primary_color: priColor,
+        //     secondary_color: secColor,
+        //     logo_id: logoId,
+        //     logo_count_digital: digital,
+        //     logo_count_digital_small: digiSmall,
+        //     print_user_name: printUser,
+        //     print_job_id: jobId,
+        //     print_device: printer
+        //     }, id],
