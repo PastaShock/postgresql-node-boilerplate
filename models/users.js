@@ -17,6 +17,15 @@ const getSingle = (req, res) => {
         res.status(200).json(result.rows)
     } )
 }
+const getByName = (req, res) => {
+    const user_name = req.params.name
+    db.query('SELECT * FROM users WHERE name = $1;', [user_name], (error, result) => {
+        if (error) {
+            throw error
+        }
+        res.status(200).json(result.rows)
+    } )
+}
 const postSingle = (req, res) => {
     const { name, email, phone, hired } = req.body
     db.query('INSERT INTO users (name, email, phone, hired) VALUES ($1, $2, $3, $4) RETURNING *',
@@ -55,6 +64,7 @@ const deleteSingle = (req, res) => {
 module.exports = {
     getAll,
     getSingle,
+    getByName,
     postSingle,
     updateSingle,
     deleteSingle

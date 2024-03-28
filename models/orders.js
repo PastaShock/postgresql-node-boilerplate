@@ -1,7 +1,5 @@
-const { response } = require('express')
 const { db } = require('../db/connection')
 const { updateProductByID, postProductByID, errHandler } = require('../index')
-const fs = require('fs')
 
 // list all orders (not a good idea except for testing)
 const getAll = (req, res) => {
@@ -76,6 +74,8 @@ const postSingle = (req, res) => {
         logoId,
         digital,
         digiSmall,
+        sticker,
+        embroidery,
         printUser,
         jobId,
         printer
@@ -97,11 +97,13 @@ const postSingle = (req, res) => {
         logo_id,
         logo_count_digital,
         logo_count_digital_small,
+        logo_count_sticker,
+        logo_count_embroidery,
         print_user_name,
         print_job_id,
         print_device
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
             ) RETURNING *`,
         [ orderId,
 		 salesOrder,
@@ -119,6 +121,8 @@ const postSingle = (req, res) => {
 		 logoId,
 		 digital,
 		 digiSmall,
+         sticker,
+         embroidery,
 		 printUser,
 		 jobId,
 		 printer ],

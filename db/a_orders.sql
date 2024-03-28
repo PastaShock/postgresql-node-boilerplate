@@ -14,7 +14,9 @@ insert into orders (
 	secondary_color,
 	logo_id,
 	logo_count_digital,
-	logo_count_digital_small
+	logo_count_digital_small,
+	logo_count_sticker,
+	logo_count_embroidery
     ) values (
     '21158014',
 	'SO108417',
@@ -31,5 +33,7 @@ insert into orders (
 	'Athletic Gold #EBBA30',
 	'Custom',
 	1,
-	0
+	0,
+	0,
+	0,
 );
