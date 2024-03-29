@@ -72,8 +72,8 @@ const getSingle = (req, res) => {
 }
 const postSingle = (req, res) => {
     const {
-        jobId,
-        orderId
+        job_id,
+        order_id
         } = req.body
     db.query(`INSERT INTO job_orders (
         job_id,
@@ -82,8 +82,8 @@ const postSingle = (req, res) => {
                 $1, $2
             ) RETURNING *`,
         [
-            jobId,
-		    orderId
+            job_id,
+		    order_id
         ],
         (error, result) => {
             if (error) {
@@ -95,7 +95,7 @@ const postSingle = (req, res) => {
                     res.status(200).send(`error: ${error} : ${JSON.stringify(req.body)}`)
                 }
             } else {
-                res.status(201).send(`job added with ID: ${jobId}`)
+                res.status(201).send(`job added with ID: ${job_id}`)
             }
     } )
 }

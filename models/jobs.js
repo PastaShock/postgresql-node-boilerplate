@@ -44,27 +44,31 @@ const getSingle = (req, res) => {
 }
 const postSingle = (req, res) => {
     const {
-        jobId,
-        downloadDate,
-        printDate,
-        printUser,
-        printer
+        job_id,
+        date_downloaded,
+        date_printed,
+        print_user,
+        print_device,
+        print_queue
         } = req.body
     db.query(`INSERT INTO jobs (
         job_id,
         date_downloaded,
         date_printed,
         print_user,
-        print_device
+        print_device,
+        print_queue
             ) VALUES (
-                $1, $2, $3, $4, $5
+                $1, $2, $3, $4, $5, $6
             ) RETURNING *`,
-        [ jobId,
-		 downloadDate,
-		 printDate,
-		 printUser,
-		 jobId,
-		 printer ],
+        [
+            job_id,
+            date_downloaded,
+            date_printed,
+            print_user,
+            print_device,
+            print_queue
+        ],
         (error, result) => {
             if (error) {
                 console.log(req.body)
@@ -75,7 +79,7 @@ const postSingle = (req, res) => {
                     res.status(200).send(`error: ${error} : ${JSON.stringify(req.body)}`)
                 }
             } else {
-                res.status(201).send(`job added with ID: ${jobId}`)
+                res.status(201).send(`job added with ID: ${job_id}`)
             }
     } )
 }
