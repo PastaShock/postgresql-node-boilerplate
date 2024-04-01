@@ -1,0 +1,76 @@
+INSERT INTO printers (
+  equip_id,
+  type,
+  color,
+  location,
+  install_date,
+  last_maint_ext,
+  last_maint_int,
+  mfg_serial,
+  nickname
+) VALUES (
+  0,
+  'VS540i',
+  'white/blue',
+  'northeast',
+  '2017-01-01',
+  '',
+  '',
+  'KCL3964',
+  'Rolanda'
+),
+(
+  1,
+  'VG540',
+  'grey/blue',
+  'north',
+  '2018-05-01T00:00:00.000Z',
+  null,
+  '2024-02-21T00:00:00.000Z',
+  'LDN1123',
+  'Mary-Kate'
+),
+(
+  2,
+  'VG540',
+  'grey/blue',
+  'north',
+  '2018-05-01T00:00:00.000Z',
+  null,
+  '2024-02-21T00:00:00.000Z',
+  'LD01124',
+  'Ashley'
+),
+(
+  3,
+  'VG540',
+  'grey/blue',
+  'west',
+  '2019-09-01T00:00:00.000Z',
+  null,
+  null,
+  'LD01156',
+  'Nicole'
+),
+(
+  4,
+  'VG3540',
+  'grey/blue',
+  'northwest',
+  '2022-06-01T00:00:00.000Z',
+  null,
+  null,
+  'KFL0945',
+  'Paris'
+),
+(
+  99,
+  'Printer for old data',
+  'Blue',
+  'northeast',
+  '2013-09-02T00:00:00.000Z',
+  null,
+  null,
+  'SNA9999',
+  'Default'
+)
