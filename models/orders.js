@@ -13,7 +13,7 @@ const getAll = (req, res) => {
 const getMany = (req, res) => {
     var ordArr = []
     req.body.forEach( id => {
-        db.query(`SELECT *, orders.order_ns_url FROM orders WHERE order_id = $1`, [id], (error, result) => {
+        db.query(`SELECT * FROM orders WHERE order_id = $1`, [id], (error, result) => {
             if (error) throw error
             if (result.rows.length == '') {
                 res.status(404).send(404)
@@ -31,7 +31,33 @@ const getMany = (req, res) => {
 // get a single order by order_id / id
 const getSingle = (req, res) => {
     const id = req.params.id
-    db.query('SELECT *, orders.order_ns_url FROM orders WHERE order_id = $1;', [id], (error, result) => {
+    db.query('SELECT * FROM orders WHERE order_id = $1;', [id], (error, result) => {
+        if (error) {
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            res.status(404).send('404')
+        } else {
+            res.status(200).json(result.rows)
+        }
+    } )
+}
+const getFundId = (req, res) => {
+    const id = req.params.id
+    db.query('SELECT * FROM orders WHERE fundraiser_id = $1;', [id], (error, result) => {
+        if (error) {
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            res.status(404).send('404')
+        } else {
+            res.status(200).json(result.rows)
+        }
+    } )
+}
+const getMagento= (req, res) => {
+    const id = req.params.id
+    db.query('SELECT * FROM orders WHERE magento_id = $1;', [id], (error, result) => {
         if (error) {
             throw error
         }
@@ -80,52 +106,55 @@ const postSingle = (req, res) => {
         jobId,
         printer
         } = req.body
-    db.query(`INSERT INTO orders (
-        order_id,
-        sales_order_id,
-        magento_id,
-        fundraiser_id,
-        fundraiser_name,
-        placed_on_date,
-        date_downloaded,
-        date_printed,
-        order_type,
-        order_notes,
-        logo_script,
-        primary_color,
-        secondary_color,
-        logo_id,
-        logo_count_digital,
-        logo_count_digital_small,
-        logo_count_sticker,
-        logo_count_embroidery,
-        print_user_name,
-        print_job_id,
-        print_device
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
-            ) RETURNING *`,
-        [ orderId,
-		 salesOrder,
-		 magentoId,
-		 fundId,
-		 fundName,
-		 placedDate,
-		 downloadDate,
-		 printDate,
-		 orderType,
-		 orderNotes,
-		 logoScript,
-		 priColor,
-		 secColor,
-		 logoId,
-		 digital,
-		 digiSmall,
-         sticker,
-         embroidery,
-		 printUser,
-		 jobId,
-		 printer ],
+    db.query(`
+        INSERT INTO orders (
+            order_id,
+            sales_order_id,
+            magento_id,
+            fundraiser_id,
+            fundraiser_name,
+            placed_on_date,
+            date_downloaded,
+            date_printed,
+            order_type,
+            order_notes,
+            logo_script,
+            primary_color,
+            secondary_color,
+            logo_id,
+            logo_count_digital,
+            logo_count_digital_small,
+            logo_count_sticker,
+            logo_count_embroidery,
+            print_user_name,
+            print_job_id,
+            print_device
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+        ) RETURNING *`,
+        [
+            orderId,
+            salesOrder,
+            magentoId,
+            fundId,
+            fundName,
+            placedDate,
+            downloadDate,
+            printDate,
+            orderType,
+            orderNotes,
+            logoScript,
+            priColor,
+            secColor,
+            logoId,
+            digital,
+            digiSmall,
+            sticker,
+            embroidery,
+            printUser,
+            jobId,
+            printer
+        ],
         (error, result) => {
             if (error) {
                 console.log(req.body)
@@ -193,6 +222,8 @@ module.exports = {
     getAll,
     getMany,
     getSingle,
+    getFundId,
+    getMagento,
     postSingle,
     postMany,
     updateSingle,

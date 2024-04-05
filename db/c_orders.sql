@@ -19,5 +19,6 @@ create table orders (
 	logo_count_embroidery integer,
 	print_user_name varchar (56),
 	print_job_id varchar (36),
-	print_device varchar (15)
+	print_device varchar (15),
+	order_ns_url varchar (84) GENERATED ALWAYS AS ('https://4766534.app.netsuite.com/app/accounting/transactions/salesord.nl?id=' || order_id) STORED
 );
