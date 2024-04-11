@@ -82,3 +82,46 @@ exports.postProductByID = (table, cols) => {
   // Return a complete query string
   return query.join(' ')
 }
+
+exports.postProductsByID = (table, cols) => {
+  // Setup static beginning of query
+  var query = ['INSERT INTO ' + table + 's ( ']
+  // Create another array storing each set command
+  // and assigning a number value for parameterized query
+  var set = []
+  var vals = []
+  function getColumnNames(cols) {
+    // get names of all given columns into an array:
+    Object.keys(cols).forEach(function (key) {
+      set.push(key)
+    })
+  }
+  function removeDuplicates(data) {
+    return [...new Set(data)]
+  }
+  // check if valid object is given properly?
+  // if [0] is not 'order_id' then loop through getColumnsNames() for every order given
+  if (Object.keys(cols)[0] === 'order_id') {
+    console.log('one object given')
+    getColumnNames(cols)
+  } else if (Object.keys(cols[0])[0] === 'order_id') {
+    console.log('loop through multiple given objects')
+    for (let i = 0; i < cols.length; i++) {
+      getColumnNames(cols[i])
+    }
+  } else {
+    console.log('order_id not given or it is not the first item in the object')
+  }
+  // remove duplicates from var set
+  set = removeDuplicates(set)
+  query.push(set.join(', '))
+  query.push(') VALUES (')
+  Object.keys(cols).forEach(function (key, i) {
+    vals.push('$' + (i + 1))
+  })
+  query.push(vals.join(', '))
+  query.push(') RETURNING *;')
+
+  // Return a complete query string
+  return query.join(' ')
+}

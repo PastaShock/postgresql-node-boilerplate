@@ -66,36 +66,49 @@ const getMany = (req, res) => {
             }
         })
     } else {
-        console.log(`req.body is not type of object`)
+        // if req.body is not type of object log as non-fatal error
+        log.error = 'error: req body is not of type Object'
+        log.loglevel = 'alert'
+        logHandler(log)
     }
 }
 // get a single order by order_id
 // orders/:id
 const getSingle = (req, res) => {
+    // set log params
     log.source = 'getSingle'
     log.request = req
     const id = req.params.id
+    // query is static, we just need one order_id
     let query = 'SELECT * FROM orders WHERE order_id = $1;'
+    // append id to the query as we won't know otherwise what the API request was for
     log.dbquery = `${query}, ${id}`
     db.query(query, [id], (error, result) => {
         if (error) {
+            // set log error params and log to file
             log.loglevel = 'severe'
             log.error = error
             logHandler(log)
             throw error
         }
         if (result.rows.length == '' ) {
+            // set params for non-fatal error and log to file
             log.error = `error: order id: ${id} does not exist in db`
             log.loglevel = 'alert'
             logHandler(log)
             res.status(404).send('404')
         } else {
+            // log successful access to file
             logHandler(log)
+            // return success status and result
             res.status(200).json(result.rows)
         }
     } )
 }
+// get orders by fundraiser id. this is not a unique ID it will return many orders potentially
+// orders/fundraiser/:id
 const getFundId = (req, res) => {
+    // set log params
     log.source = 'getFundId'
     log.request = req
     const id = req.params.id
@@ -103,20 +116,29 @@ const getFundId = (req, res) => {
     log.dbquery = query
     db.query(query, [id], (error, result) => {
         if (error) {
+            // set log error params and log to file
             log.loglevel = 'severe'
             log.error = error
             logHandler(log)
             throw error
         }
         if (result.rows.length == '' ) {
+            // set log error for 'not found'
+            log.loglevel = 'alert'
+            log.error = 'not found'
+            logHandler(log)
             res.status(404).send('404')
         } else {
+            // log success
             logHandler(log)
             res.status(200).json(result.rows)
         }
     } )
 }
+// Get one order by magento ID
+// orders/magento
 const getMagento= (req, res) => {
+    // set log params
     log.source = 'getMagento'
     log.request = req
     const id = req.params.id
@@ -124,21 +146,30 @@ const getMagento= (req, res) => {
     log.dbquery = query
     db.query(query, [id], (error, result) => {
         if (error) {
+            // set log error params
             log.loglevel = 'severe'
             log.error = error
             logHandler(log)
             throw error
         }
         if (result.rows.length == '' ) {
+            // set log error params for non-fatal error
+            log.loglevel = 'alert'
+            log.error = 'not found'
+            logHandler(log)
             res.status(404).send('404')
         } else {
+            // log success
             logHandler(log)
             res.status(200).json(result.rows)
         }
     } )
 }
 
+// get many orders by many magento IDs
+// orders/magento/bulk/
 const getMagentoIds = (req, res) => {
+    // set log params
     log.source = 'getMagentoIds'
     log.request = req
     // verify that typeof req.body === 'object'
@@ -146,21 +177,31 @@ const getMagentoIds = (req, res) => {
         let query = `SELECT * FROM orders WHERE magento_id = ANY($1)`
         log.dbquery = query
         db.query(query, [req.body], (error, result) => {
-            if (!error) {
-                logHandler(log)
-                res.json(result.rows)
-            } else {
+            if (error) {
+                // set log error params
                 log.error = error
                 log.loglevel = 'severe'
                 logHandler(log)
                 res.sendStatus(404)
                 throw error
+            } else {
+                // log success
+                logHandler(log)
+                res.json(result.rows)
             }
         })
     } else {
-        console.log(`req.body is not type of object`)
+        // set log error params for non-fatal error
+        log.error = 'req.body is not type of object'
+        log.loglevel = 'alert'
+        logHandler(log)
     }
 }
+
+// The following portion of this file is the Create, Update and Delete portion.
+// I should have authentication on the following API endpoints
+
+// Explainer:
 // fixed data in the order row should be orderid (key), salesOrderId (key?), fundid, magentoId (key?), fundName, orderType, orderNotes, digital, digiSmall
 // each order should have foreign keys linking it to a row in the jobs table
 // the key should be jobId, and it should left append with printUser.name from users on user.id name from printers on printer.id
@@ -172,7 +213,11 @@ const getMagentoIds = (req, res) => {
 
 // which relates to the orders table on orders.order_id
 // With a left append jobs where job id = x with orders with jobs.order_id on orders.order_id 
+
+// Post one order
+// orders/:id
 const postSingle = (req, res) => {
+    // set log params
     log.source = 'postSingle'
     log.request = req
     //
@@ -255,94 +300,134 @@ const postSingle = (req, res) => {
         ],
         (error, result) => {
             if (error) {
+                // set value to check against for duplicates. This is the return from postgresql if there is and order that already exists with that ID
                 errorDuplicate = `error: duplicate key value violates unique constraint "orders_pkey"`
                 if (error == errorDuplicate) {
+                    // set log params for duplicate orders
                     log.loglevel = 'alert'
                     log.error = error
                 } else {
+                    // set log params for fatal or other error
                     log.loglevel = 'severe'
                 }
                 log.error = error
                 logHandler(log)
                 res.status(500).json(error)
             } else {
+                // log success
                 logHandler(log)
                 res.status(201).send(`order added with ID: ${orderId}\n${result}`)
             }
     } )
 }
+
+// Update one order
+// orders/:id
 const updateSingle = (req, res) => {
+    // set log params
     log.source = 'updateSingle'
     log.request = req
     // Make forEach to make multiple PUTs based on however many rows are given?
     // colValues takes each key and returns their assigned values in an array
     let colValues = Object.values(req.body[0])
-    // func is from index, Table name is hardcoded 'order' singular the func takes the name and uses it singularly and pluraly as needed.
-    let query = updateProductByID('order', req.params.id, req.body[0])
-    log.dbquery = query
+    let id = req.params.id
+    // updateProductByID() is from index, Table name is hardcoded 'order' singular the func takes the name and uses it singularly and pluraly as needed.
+    let query = updateProductByID('order', [id], req.body[0])
+    // As I currently require an ID in the URL params I should log that with the query
+    log.dbquery = `${query}, ${id}`
     db.query(query, colValues, (error, result) => {
-        // Log in console, should also log in a user history log, separate from the err log.
-        // console.log(`update: ${req.params.id}, from: ${req.ip}, query = ${query}, params: ${colValues}`)
         if (error) {
+            // set log error params
             log.loglevel = 'severe'
             log.error = error
             logHandler(log)
             res.status(500).json(result)
             // throw error
         } else {
+            // log success
             logHandler(log)
             res.status(200).json(result.rows)
         }
     })
 }
+
+// Delete one order
+// orders/:id
 const deleteSingle = (req, res) => {
+    // set log params
     log.source = 'deleteSingle'
     log.request = req
     const id = req.params.id
     let query = 'DELETE FROM orders WHERE order_id = $1'
-    log.dbquery = query
+    // The ID is URL parameter and needs to be appended to log.query
+    log.dbquery = `${query}, ${id}`
     db.query(query,
         [id],
         (error, result) => {
         if (error) {
+            // set log error params
             log.loglevel = 'severe'
             log.error = error
             logHandler(log)
             throw error
+        } else {
+            // log success
+            logHandler(log)
+            res.status(200).send(`result: command ${result.command} row(s) ${result.rowCount} with id ${id}`)
         }
-        logHandler(log)
-        res.status(200).send(`order deleted with ID: ${id}`)
     } )
 }
 
+// POST many orders
+// orders/bulk
 const postMany = (req, res) => {
+    // set log params
     log.source = 'postMany'
     log.request = req
     function setStatusSuccess(results) {
         res.status(200).json(results)
     }
-    // req.body should be an array, iterate through each obj in 
+    // req.body should be an array, iterate through each obj in req.body
     var results
-    req.body.forEach(order => {
-        // create query with function giving table name and object
-        var query = postProductByID('order', order)
-        log.dbquery = query
-        // create an array of the values from the object
-        var colValues = Object.keys(order).map(function (key) {
-            return order[key]
-        }) 
-        setStatusSuccess(db.query(query, colValues, (error, result) => {
-            if (error) {
-                log.error = error
-                log.loglevel = 'severe'
-                logHandler(log)
-            } else {
-                console.log(`post success : ${order}`)
-                logHandler(log)
-                return result.rows
-            }
-        }))
-    });
+    // Old Method:
+    // req.body.forEach(order => {
+    //     // create query with function giving table name and object
+    //     var query = postProductByID('order', order)
+    //     log.dbquery = query
+    //     // create an array of the values from the object
+    //     var colValues = Object.keys(order).map(function (key) {
+    //         return order[key]
+    //     }) 
+    //     results += (db.query(query, colValues, (error, result) => {
+    //         if (error) {
+    //             log.error = error
+    //             log.loglevel = 'severe'
+    //             // logHandler(log)
+    //         } else {
+    //             console.log(`post success : ${order}`)
+    //             // logHandler(log)
+    //             return result.rows
+    //         }
+    //     }))
+    // });
+    // Generate a query based on the properties of given objects
+    // Get an array of properties from each object
+    // 
+    // New Method:
+    var query = postProductByID('order', req.body)
+    var colValues = Object.keys(req.body).map(function (key) {
+        return req.body[key]
+    })
+    console.log(query)
+    db.query(query, colValues, (error, result) => {
+        if (error) {
+            console.log(error)
+            res.status(500)
+        } else {
+            console.log('success')
+            return result.rows
+        }
+    })
 }
 
 module.exports = {
