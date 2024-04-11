@@ -11,39 +11,57 @@ var log = {
 }
 
 // list all orders (not a good idea except for testing)
+// orders/
+// I should find a way to add a cursor to load all orders in a paginated manner
+// where the cursor increments with each additional request
 const getAll = (req, res) => {
+    // set log source to name of this function
     log.source = 'getAll'
+    // set log request to this request
     log.request = req
     let query = 'SELECT * FROM orders ORDER BY order_id ASC;'
     db.query(query, (error, result) => {
+        // set the log query to this query
         log.dbquery = query
         if (error) {
+            // set log error
             log.error = error
             log.loglevel = 'severe'
+            // send log to logHandler
             logHandler(log)
             throw error
         }
+        // send log to logHandler
         logHandler(log)
         res.status(200).json(result.rows)
     } )
 }
+// orders/bulk
+// with body containing many order_ids [12345678, 21238952, 23002594]
 const getMany = (req, res) => {
+    // set log params for this function+req
     log.source = 'getMany'
     log.request = req
     // verify that typeof req.body === 'object'
     if (typeof req.body === 'object') {
         let query = `SELECT * FROM orders WHERE order_id = ANY($1)`
+        // set log query
         log.dbquery = query
         db.query(query, [req.body], (error, result) => {
             if (!error) {
-                console.log(result.rows)
+                // log db access:
                 logHandler(log)
-                res.json(result.rows)
+                // set status and return db results
+                res.status(200).json(result.rows)
             } else {
+                // set status
                 res.sendStatus(404)
+                // set log error params
                 log.error = error
                 log.loglevel = 'severe'
+                // log db access/api error
                 logHandler(log)
+                // crash the software
                 throw error
             }
         })
@@ -51,13 +69,14 @@ const getMany = (req, res) => {
         console.log(`req.body is not type of object`)
     }
 }
-// get a single order by order_id / id
+// get a single order by order_id
+// orders/:id
 const getSingle = (req, res) => {
     log.source = 'getSingle'
     log.request = req
     const id = req.params.id
     let query = 'SELECT * FROM orders WHERE order_id = $1;'
-    log.dbquery = query
+    log.dbquery = `${query}, ${id}`
     db.query(query, [id], (error, result) => {
         if (error) {
             log.loglevel = 'severe'
