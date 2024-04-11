@@ -3,26 +3,27 @@ const fs = require('fs')
 exports.logHandler = ({source, request, loglevel, dbquery, error}) => {
   // pre-baked catches for specific errors
   // I don't care enough to log duplicate posts/updates as they are rejected by the db regardless
+  let content = {
+    "datetime": Date(),
+    "source" : source,
+    "loglevel": loglevel,
+    "userip": request.ip,
+    "dbquery": dbquery,
+    "error": JSON.stringify(error),
+    "requestbody": JSON.stringify(request.body)
+  }
   errorDuplicate = `error: duplicate key value violates unique constraint "orders_pkey"`
   if (error == errorDuplicate) {
-    console.log('duplicate')
+    content.error = 'duplicate'
+    content.loglevel = 'alert'
   } else {
-    let content = {
-      "datetime": Date(),
-      "source" : source,
-      "loglevel": loglevel,
-      "userip": request.ip,
-      "dbquery": dbquery,
-      "error": JSON.stringify(error),
-      "requestbody": JSON.stringify(request.body)
-    }
     if (loglevel === 'severe') {
-      var file = 'err_' + source
+      source = 'err_' + source
     } else {
-      var file = 'access'
+      source = 'access'
     }
-    logContentHandler(content, file)
   }
+  logContentHandler(content, source)
 }
 
 function logContentHandler(content, filePath) {

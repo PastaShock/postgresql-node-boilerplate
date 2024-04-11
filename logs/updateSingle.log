@@ -1,0 +1,2 @@
+,
+{"datetime":"Wed Apr 10 2024 23:55:19 GMT+0000 (Coordinated Universal Time)","source":"updateSingle","loglevel":"low","userip":"::ffff:192.168.1.78","dbquery":"UPDATE orders SET date_downloaded = ($1), magento_id = ($2) WHERE order_id = 13191185 RETURNING *","error":"\"\"","requestbody":"[{\"date_downloaded\":\"2023-04-06T00:00:00.000Z\",\"magento_id\":\"GEORGE0001738\"}]"}

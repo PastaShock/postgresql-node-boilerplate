@@ -118,19 +118,6 @@ const getMagento= (req, res) => {
         }
     } )
 }
-function getOrdersByMagentoId(id) {
-    let sql = `SELECT * FROM orders WHERE magento_id = $1`
-    return new Promise((resolve, reject) => {
-        db.query(sql, id, (err, result) => {
-            if (!err) {
-                resolve(result[0])
-            } else {
-                console.log(err)
-                reject(err)
-            }
-        })
-    })
-}
 
 const getMagentoIds = (req, res) => {
     log.source = 'getMagentoIds'
@@ -168,6 +155,7 @@ const getMagentoIds = (req, res) => {
 // With a left append jobs where job id = x with orders with jobs.order_id on orders.order_id 
 const postSingle = (req, res) => {
     log.source = 'postSingle'
+    log.request = req
     //
     // HERE: I should check to see how data from the json/response is handled so I could potentially save myself some typeing time
     // Right now this only works for powershell POSTs because powershell refuses to put single orders into an array
@@ -221,6 +209,7 @@ const postSingle = (req, res) => {
         ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
         ) RETURNING *`
+        log.dbquery = query
     db.query(query,
         [
             orderId,
@@ -247,43 +236,41 @@ const postSingle = (req, res) => {
         ],
         (error, result) => {
             if (error) {
-                log.loglevel = 'severe'
+                errorDuplicate = `error: duplicate key value violates unique constraint "orders_pkey"`
+                if (error == errorDuplicate) {
+                    log.loglevel = 'alert'
+                    log.error = error
+                } else {
+                    log.loglevel = 'severe'
+                }
                 log.error = error
-                log.dbquery = query
                 logHandler(log)
                 res.status(500).json(error)
             } else {
-                log.dbquery = query
                 logHandler(log)
-                res.status(201).send(`order added with ID: ${orderId}`)
+                res.status(201).send(`order added with ID: ${orderId}\n${result}`)
             }
     } )
 }
 const updateSingle = (req, res) => {
-    var log = {
-        source: 'updateSingle',
-        request: req,
-        loglevel: 'low',
-        dbquery: '',
-        error: ''
-    } 
+    log.source = 'updateSingle'
+    log.request = req
     // Make forEach to make multiple PUTs based on however many rows are given?
     // colValues takes each key and returns their assigned values in an array
     let colValues = Object.values(req.body[0])
     // func is from index, Table name is hardcoded 'order' singular the func takes the name and uses it singularly and pluraly as needed.
     let query = updateProductByID('order', req.params.id, req.body[0])
+    log.dbquery = query
     db.query(query, colValues, (error, result) => {
         // Log in console, should also log in a user history log, separate from the err log.
         // console.log(`update: ${req.params.id}, from: ${req.ip}, query = ${query}, params: ${colValues}`)
         if (error) {
-            log.dbquery = query
             log.loglevel = 'severe'
             log.error = error
             logHandler(log)
             res.status(500).json(result)
             // throw error
         } else {
-            log.dbquery = query
             logHandler(log)
             res.status(200).json(result.rows)
         }
@@ -291,6 +278,7 @@ const updateSingle = (req, res) => {
 }
 const deleteSingle = (req, res) => {
     log.source = 'deleteSingle'
+    log.request = req
     const id = req.params.id
     let query = 'DELETE FROM orders WHERE order_id = $1'
     log.dbquery = query
@@ -307,6 +295,7 @@ const deleteSingle = (req, res) => {
         res.status(200).send(`order deleted with ID: ${id}`)
     } )
 }
+
 const postMany = (req, res) => {
     log.source = 'postMany'
     log.request = req
