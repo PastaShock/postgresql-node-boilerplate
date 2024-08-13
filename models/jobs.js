@@ -85,12 +85,17 @@ const postSingle = (req, res) => {
 }
 const updateSingle = (req, res) => {
     var query = updateProductByID('job', req.params.id, req.body)
-    var colValues = Object.keys(req.body).map(function (key) {
-        return req.body[key]
-    }) 
+    var colValues = Object.values(req.body)
+    console.log(query)
+    console.log(colValues)
     db.query(query, colValues,(error, result) => {
         if (error) throw error
-        res.status(200).send(`job updated with ID: ${id}: ${JSON.stringify(req.body)}\nresult: ${result}`)
+        res.status(200).send({
+            "id" : req.params.id,
+            "req" : req.body,
+            "status" : '200',
+            "result" : result
+        })
     })
 }
 const deleteSingle = (req, res) => {

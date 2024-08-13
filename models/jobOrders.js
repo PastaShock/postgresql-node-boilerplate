@@ -31,45 +31,73 @@ const getMany = (req, res) => {
 // get a single job by job_id / id
 const getSingle = (req, res) => {
     const id = req.params.id
-    db.query(`SELECT
-            o.order_id,
-            o.sales_order_id,
-            o.magento_id,
-            o.fundraiser_id,
-            o.fundraiser_name,
-            o.placed_on_date,
-            j.date_downloaded,
-            j.date_printed,
-            o.order_type,
-            o.order_notes,
-            o.logo_script,
-            o.primary_color,
-            o.secondary_color,
-            o.logo_id,
-            o.logo_count_digital,
-            o.logo_count_digital_small,
-            o.logo_count_sticker,
-            o.logo_count_embroidery,
-            u.name as user_name,
-            p.nickname as printer_nickname,
-            j.print_queue
-            FROM jobs j
-            JOIN job_orders jo on (j.job_id = jo.job_id)
-            JOIN orders o ON (jo.order_id = o.order_id)
-            JOIN printers p ON (j.print_device = p.equip_id)
-            JOIN users u on (j.print_user = u.user_id)
-            WHERE j.job_id = $1;`
-            , [id], (error, result) => {
+    let largeQuery = `
+        SELECT
+        o.order_id,
+        o.fundraiser_name,
+        o.order_type,
+        u.name,
+        p.nickname,
+        j.date_printed
+        FROM job_orders
+        LEFT JOIN jobs j ON (job_orders.job_id = j.job_id)
+        RIGHT JOIN orders o ON (job_orders.order_id = o.order_id)
+        RIGHT JOIN users u ON (j.print_user = u.user_id)
+        RIGHT JOIN printers p ON (j.print_device = p.equip_id)
+        WHERE job_orders.job_id = $1;
+    `
+    let query = `SELECT order_id FROM job_orders WHERE job_id = $1`
+    db.query(largeQuery, [id], (error, result) => {
         if (error) {
             throw error
         }
         if (result.rows.length == '' ) {
             res.status(404).send('404')
         } else {
-            res.status(200).json(result.rows)
+            res.status(200).json({
+                "id" : id,
+                "req" : req.body,
+                "status" : '200',
+                "order_ids" : 
+                    result.rows.map(({order_id}) => {
+                        return order_id
+                    }),
+                "result" : result
+            })
         }
     } )
 }
+
+const getJobs = (req, res) => {
+    const id = req.params.id
+    let largeQuery = `
+        SELECT
+        job_id
+        FROM job_orders
+        WHERE job_orders.order_id = $1;
+    `
+    let query = `SELECT order_id FROM job_orders WHERE job_id = $1`
+    db.query(largeQuery, [id], (error, result) => {
+        if (error) {
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            res.status(404).send('404')
+        } else {
+            res.status(200).json({
+                "id" : id,
+                "req" : req.body,
+                "status" : '200',
+                "job_ids" : 
+                    result.rows.map(({job_id}) => {
+                        return job_id
+                    }),
+                "result" : result
+            })
+        }
+    } )
+}
+
 const postSingle = (req, res) => {
     const {
         job_id,
@@ -152,6 +180,7 @@ module.exports = {
     getAll,
     getMany,
     getSingle,
+    getJobs,
     postSingle,
     postMany,
     updateSingle,

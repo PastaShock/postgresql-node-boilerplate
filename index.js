@@ -51,7 +51,7 @@ exports.updateProductByID = (table, id, cols) => {
   query.push(set.join(', '));
 
   // Add the WHERE statement to look up by id
-  query.push('WHERE ' + table + '_id = ' + id);
+  query.push('WHERE ' + table + '_id = \'' + id + '\'');
 
   // Add a return to the query to get data back:
   query.push(`RETURNING *`)

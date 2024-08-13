@@ -225,27 +225,27 @@ const postSingle = (req, res) => {
     // Right now this only works for powershell POSTs because powershell refuses to put single orders into an array
     // I will use the POST many method below for HTTP POST req for now
     const {
-        orderId,
-        salesOrder,
-        magentoId,
-        fundId,
-        fundName,
-        placedDate,
-        downloadDate,
-        printDate,
-        orderType,
-        orderNotes,
-        logoScript,
-        priColor,
-        secColor,
-        logoId,
-        digital,
-        digiSmall,
-        sticker,
-        embroidery,
-        printUser,
-        jobId,
-        printer
+        order_id,
+        sales_order_id,
+        magento_id,
+        fundraiser_id,
+        fundraiser_name,
+        placed_on_date,
+        date_downloaded,
+        date_printed,
+        order_type,
+        order_notes,
+        logo_script,
+        logo_id,
+        primary_color,
+        secondary_color,
+        logo_count_digital,
+        logo_count_digital_small,
+        logo_count_sticker,
+        logo_count_embroidery,
+        print_user_name,
+        print_job_id,
+        print_device
         } = req.body
         let query = `
         INSERT INTO orders (
@@ -260,9 +260,9 @@ const postSingle = (req, res) => {
             order_type,
             order_notes,
             logo_script,
+            logo_id,
             primary_color,
             secondary_color,
-            logo_id,
             logo_count_digital,
             logo_count_digital_small,
             logo_count_sticker,
@@ -276,27 +276,27 @@ const postSingle = (req, res) => {
         log.dbquery = query
     db.query(query,
         [
-            orderId,
-            salesOrder,
-            magentoId,
-            fundId,
-            fundName,
-            placedDate,
-            downloadDate,
-            printDate,
-            orderType,
-            orderNotes,
-            logoScript,
-            priColor,
-            secColor,
-            logoId,
-            digital,
-            digiSmall,
-            sticker,
-            embroidery,
-            printUser,
-            jobId,
-            printer
+            order_id,
+            sales_order_id,
+            magento_id,
+            fundraiser_id,
+            fundraiser_name,
+            placed_on_date,
+            date_downloaded,
+            date_printed,
+            order_type,
+            order_notes,
+            logo_script,
+            logo_id,
+            primary_color,
+            secondary_color,
+            logo_count_digital,
+            logo_count_digital_small,
+            logo_count_sticker,
+            logo_count_embroidery,
+            print_user_name,
+            print_job_id,
+            print_device
         ],
         (error, result) => {
             if (error) {
@@ -306,17 +306,18 @@ const postSingle = (req, res) => {
                     // set log params for duplicate orders
                     log.loglevel = 'alert'
                     log.error = error
+                    console.log(`duplicate order: ${order_id}`)
                 } else {
                     // set log params for fatal or other error
                     log.loglevel = 'severe'
+                    log.error = error
                 }
-                log.error = error
                 logHandler(log)
-                res.status(500).json(error)
+                res.status(500).json(log.error)
             } else {
                 // log success
                 logHandler(log)
-                res.status(201).send(`order added with ID: ${orderId}\n${result}`)
+                res.status(201).send(`order added with ID: ${order_id}\n${JSON.stringify(result.rows)}`)
             }
     } )
 }
@@ -346,7 +347,7 @@ const updateSingle = (req, res) => {
         } else {
             // log success
             logHandler(log)
-            res.status(200).json(result.rows)
+            res.status(200).json(JSON.stringify(result.rows))
         }
     })
 }
