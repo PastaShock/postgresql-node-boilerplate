@@ -47,7 +47,7 @@ const getSingle = (req, res) => {
         WHERE job_orders.job_id = $1;
     `
     let query = `SELECT order_id FROM job_orders WHERE job_id = $1`
-    db.query(largeQuery, [id], (error, result) => {
+    db.query(query, [id], (error, result) => {
         if (error) {
             throw error
         }
@@ -55,14 +55,14 @@ const getSingle = (req, res) => {
             res.status(404).send('404')
         } else {
             res.status(200).json({
-                "id" : id,
-                "req" : req.body,
-                "status" : '200',
+                // "id" : id,
+                // "req" : req.body,
+                // "status" : '200',
                 "order_ids" : 
                     result.rows.map(({order_id}) => {
                         return order_id
                     }),
-                "result" : result
+                // "result" : result
             })
         }
     } )
@@ -72,11 +72,29 @@ const getJobs = (req, res) => {
     const id = req.params.id
     let largeQuery = `
         SELECT
-        job_id
+        jo.job_id,
+        j.date_printed,
+        u.name,
+        p.nickname AS print_device_name
+        FROM job_orders jo
+        JOIN jobs j ON (jo.job_id = j.job_id)
+        JOIN printers p ON (j.print_device = p.equip_id)
+        JOIN users u ON (j.print_user = u.user_id)
+        WHERE jo.order_id = $1;
+    `
+        // WHERE jo.order_id = $1;
+            // select sum(o.logo_count_digital) as total_quantity
+            // from printers p
+            // join jobs j on p.equip_id = j.print_device
+            // join job_orders jo on j.job_id = jo.job_id
+            // join orders o on jo.order_id = o.order_id
+            // where p.nickname = $1
+    let query = `
+        SELECT
+        job_orders.job_id
         FROM job_orders
         WHERE job_orders.order_id = $1;
     `
-    let query = `SELECT order_id FROM job_orders WHERE job_id = $1`
     db.query(largeQuery, [id], (error, result) => {
         if (error) {
             throw error

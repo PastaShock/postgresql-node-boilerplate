@@ -80,7 +80,110 @@ const getSingle = (req, res) => {
     log.request = req
     const id = req.params.id
     // query is static, we just need one order_id
-    let query = 'SELECT * FROM orders WHERE order_id = $1;'
+    let largeQuery = `
+    SELECT
+    o.order_id,
+    o.sales_order_id,
+    o.magento_id,
+    o.fundraiser_id,
+    o.fundraiser_name,
+    o.placed_on_date,
+    o.order_notes,
+    o.order_type,
+    o.logo_script,
+    o.primary_color,
+    o.secondary_color,
+    o.logo_count_digital,
+    o.logo_count_digital_small,
+    o.logo_count_sticker,
+    o.logo_count_embroidery,
+    o.order_ns_url,
+    jo.job_id,
+    j.date_downloaded,
+    j.date_printed,
+    u.name AS user_name,
+    p.nickname AS printer
+    FROM orders o
+    JOIN job_orders jo ON (o.order_id = jo.order_id)
+    JOIN jobs j ON (jo.job_id = j.job_id)
+    JOIN users u ON (j.print_user = u.user_id)
+    JOIN printers p ON (j.print_device = p.equip_id)
+    WHERE o.order_id = $1;
+    `
+    let query = `
+    SELECT
+    o.order_id,
+    o.sales_order_id,
+    o.magento_id,
+    o.fundraiser_id,
+    o.fundraiser_name,
+    o.placed_on_date,
+    o.order_notes,
+    o.order_type,
+    o.logo_script,
+    o.primary_color,
+    o.secondary_color,
+    o.logo_count_digital,
+    o.logo_count_digital_small,
+    o.logo_count_sticker,
+    o.logo_count_embroidery,
+    jo.job_id,
+    j.date_printed,
+    o.order_ns_url
+    FROM orders o
+    JOIN job_orders jo ON (o.order_id = jo.order_id)
+    JOIN jobs j ON (jo.job_id = j.job_id)
+    WHERE o.order_id = $1;
+    `
+    // jo.job_id
+    // JOIN job_orders jo ON (jo.order_id = o.order_id)
+    // append id to the query as we won't know otherwise what the API request was for
+    log.dbquery = `${query}, ${id}`
+    db.query('select * from orders where order_id = $1', [id], (error, result) => {
+        if (error) {
+            // set log error params and log to file
+            log.loglevel = 'severe'
+            log.error = error
+            logHandler(log)
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            // set params for non-fatal error and log to file
+            log.error = `error: order id: ${id} does not exist in db`
+            log.loglevel = 'alert'
+            logHandler(log)
+            res.status(404).send('404')
+        } else {
+            // log successful access to file
+            logHandler(log)
+            // return success status and result
+            // I could append a sub-object to the return object to have a nested data structure
+            // with more data and not interfere with the important data.
+            // I want to include jobs and information about each job in the return
+            // let query = 'SELECT * FROM jobs JOIN job_orders jo ON (jobs.job_id = jo.job_id) JOIN orders o ON (jo.order_id = o.order_id) WHERE o.order_id = $1'
+            // let jobs = db.query(query, id, (error, result) => {
+                // res.status(200).json.(result.rows)
+            // })
+            res.status(200).json(result.rows[0])
+        }
+    } )
+}
+// Get all jobs that contain an order_id
+const getJobsByOrderId = (req, res) => {
+    // set log params
+    log.source = 'getJobsByOrderId'
+    log.request = req
+    const id = req.params.id
+    // query is static, we just need one order_id
+    let query = `
+    SELECT
+    *
+    FROM
+    job_orders
+    WHERE order_id = $1
+    `
+    // jo.job_id
+    // JOIN job_orders jo ON (jo.order_id = o.order_id)
     // append id to the query as we won't know otherwise what the API request was for
     log.dbquery = `${query}, ${id}`
     db.query(query, [id], (error, result) => {
@@ -101,7 +204,19 @@ const getSingle = (req, res) => {
             // log successful access to file
             logHandler(log)
             // return success status and result
-            res.status(200).json(result.rows)
+            // I could append a sub-object to the return object to have a nested data structure
+            // with more data and not interfere with the important data.
+            // I want to include jobs and information about each job in the return
+            // let query = 'SELECT * FROM jobs JOIN job_orders jo ON (jobs.job_id = jo.job_id) JOIN orders o ON (jo.order_id = o.order_id) WHERE o.order_id = $1'
+            // let jobs = db.query(query, id, (error, result) => {
+                // res.status(200).json.(result.rows)
+            // })
+            res.status(200).json({
+                "job_ids" : 
+                    result.rows.map(({job_id}) => {
+                        return job_id
+                    }),
+        })
         }
     } )
 }
@@ -435,6 +550,7 @@ module.exports = {
     getAll,
     getMany,
     getSingle,
+    getJobsByOrderId,
     getFundId,
     getMagento,
     getMagentoIds,
@@ -443,24 +559,3 @@ module.exports = {
     updateSingle,
     deleteSingle
 }
-        // [{ 
-        //     order_id: orderId,
-        //     sales_order_id: salesOrder,
-        //     magento_id: magentoId,
-        //     fundraiser_id: fundId,
-        //     fundraiser_name: fundName,
-        //     placed_on_date: placedDate,
-        //     date_downloaded: downloadDate,
-        //     date_printed: printDate,
-        //     order_notes: orderNotes,
-        //     order_type: orderType,
-        //     logo_script: logoScript,
-        //     primary_color: priColor,
-        //     secondary_color: secColor,
-        //     logo_id: logoId,
-        //     logo_count_digital: digital,
-        //     logo_count_digital_small: digiSmall,
-        //     print_user_name: printUser,
-        //     print_job_id: jobId,
-        //     print_device: printer
-        //     }, id],
