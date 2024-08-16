@@ -14,12 +14,12 @@ DB="orders-dev-testing"
 PROJ="postgresql-node"
 # set filename:
 BAKNAME="$DB-backup-$(date +%F).sql"
-DEST="~/$PROJ/backup/"
+DEST="/home/$USER/$PROJ/backup/"
 # Test if dir exists
 if [ ! -d $DEST ]; then
 	# make dir
 	mkdir $DEST
 fi
 # I could log the status of this script to a log file
-# echo "[ $(date) ] : backing up file $BAKNAME to $DEST"
-pg_dump -U postgres $DB > "$DEST$BAKNAME"
+echo "[ $(date) ] : backing up file $BAKNAME to $DEST"
+pg_dump -U $USER $DB > "$DEST$BAKNAME"
