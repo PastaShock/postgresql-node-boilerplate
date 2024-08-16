@@ -139,7 +139,7 @@ const getSingle = (req, res) => {
     // JOIN job_orders jo ON (jo.order_id = o.order_id)
     // append id to the query as we won't know otherwise what the API request was for
     log.dbquery = `${query}, ${id}`
-    db.query('select * from orders where order_id = $1', [id], (error, result) => {
+    db.query(query, [id], (error, result) => {
         if (error) {
             // set log error params and log to file
             log.loglevel = 'severe'

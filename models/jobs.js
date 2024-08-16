@@ -42,6 +42,30 @@ const getSingle = (req, res) => {
         }
     } )
 }
+const getManyByUser = (req, res) => {
+    const id = req.params.id
+    db.query('SELECT job_id FROM jobs WHERE print_user = $1;', [id], (error, result) => {
+        if (error) {
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            res.status(404).send('404')
+        } else {
+            res.status(200).json({
+                "job_ids" : 
+                    result.rows.map(({job_id}) => {
+                        return job_id
+                    }),
+                // "total_units" :
+                //     result.rows.map((job_id) => {
+                //         db.query(`select o.logo_count_digital from orders join job_orders jo ON (jobs.job_id = jo.job_id) join orders o ON (jo.order_id = o.order_id) WHERE jobs.job_id = $1`, job_id, (error, result) => {
+                //             return result
+                //         })
+                //     })
+        })
+        }
+    } )
+}
 const postSingle = (req, res) => {
     const {
         job_id,
@@ -141,6 +165,7 @@ module.exports = {
     getAll,
     getMany,
     getSingle,
+    getManyByUser,
     postSingle,
     postMany,
     updateSingle,
