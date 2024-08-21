@@ -21,5 +21,5 @@ if [ ! -d $DEST ]; then
 	mkdir $DEST
 fi
 # I could log the status of this script to a log file
-echo "[ $(date) ] : backing up file $BAKNAME to $DEST"
+echo "[ $(date) ] : backing up file $BAKNAME to $DEST" >> ~/$PROJ/logs/backup.log
 pg_dump -U $USER $DB > "$DEST$BAKNAME"
