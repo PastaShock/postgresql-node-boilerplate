@@ -7,12 +7,8 @@
 # and then called in the root? crontab.
 #
 # I could set a vars file that is imported here, maybe from the .env
-# import .env or something
+source .env
 #
-# set db name
-DB="orders-dev-testing"
-# set proj dir
-PROJ="postgresql-node"
 # set filename:
 BAKNAME="$DB-backup-$(date +%F).sql"
 USER="$(users | cut -f 1 -d ' ')"

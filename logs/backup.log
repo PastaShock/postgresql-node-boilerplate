@@ -6,3 +6,5 @@
 [ Wed Aug 21 10:49:01 PDT 2024 ] : backing up file orders-dev-testing-backup-2024-08-21.sql to /home/george/postgresql-node/backup/
 [ Wed Aug 21 10:50:01 PDT 2024 ] : backing up file orders-dev-testing-backup-2024-08-21.sql to /home/george/postgresql-node/backup/
 [ Wed Aug 21 10:51:01 PDT 2024 ] : backing up file orders-dev-testing-backup-2024-08-21.sql to /home/george/postgresql-node/backup/
+[ Wed Aug 21 16:48:21 PDT 2024 ] : backing up file orders-dev-testing-backup-2024-08-21.sql to /home/george/postgresql-node/backup/
+[ Wed Aug 21 16:48:53 PDT 2024 ] : backing up file snap-wh-db-dev-backup-2024-08-21.sql to /home/george/postgresql-node/backup/
