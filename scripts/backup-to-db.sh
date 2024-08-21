@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# ----- THIS IS UNTESTED AND BASICALLY PSUEDOCODE -----
+# Install into crontab with crontab -e with:
+# 0 0 * * * sh /home/$USER/$PROJ/scripts/backup-to-db.sh
 #
 # This script should be made executable with chmod +x
 # and then called in the root? crontab.
@@ -16,7 +17,7 @@ PROJ="postgresql-node"
 BAKNAME="$DB-backup-$(date +%F).sql"
 USER="$(users | cut -f 1 -d ' ')"
 DEST="/home/$USER/$PROJ"
-echo "vars are:\nDB: $DB\nPROJ: $PROJ\nBAKNAME: $BAKNAME\nUSER: $USER\nDEST: $DEST" >> /dev/pts/5
+# echo "vars are:\nDB: $DB\nPROJ: $PROJ\nBAKNAME: $BAKNAME\nUSER: $USER\nDEST: $DEST" >> /dev/pts/5
 # Test if dir exists
 if [ ! -d $DEST ]; then
 	# make dir
