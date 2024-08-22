@@ -7,7 +7,7 @@
 # and then called in the root? crontab.
 #
 # I could set a vars file that is imported here, maybe from the .env
-source .env
+source /home/$USER/postgresql-node/scripts/.env
 #
 # set filename:
 BAKNAME="$DB-backup-$(date +%F).sql"
