@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # import project vars
-source .env
+source $PROJDIR/.env
 
 SESSION="pgapi"
 EXISTS=$(tmux list-sessions | grep $SESSION)
@@ -10,10 +10,12 @@ EXISTS=$(tmux list-sessions | grep $SESSION)
 if [ "$EXISTS" = "" ]; then
 	tmux new-session -d -s $SESSION
 	tmux rename-window -t 0 'API ACCESS LOG'
+	tmux send-keys -t $SESSION:0 "source $PROJDIR/scripts/.env" C-m
 	tmux send-keys -t $SESSION:0 "cd $PROJ" C-m
 	tmux send-keys -t $SESSION:0 "npm run $TYPE" C-m
 	tmux split-window -v
 	tmux select-pane 1
+	tmux send-keys "source $PROJDIR/scripts/.env" C-m
 	tmux send-keys "source $PROJ/scripts/.env" C-m
 	tmux send-keys "psql -d $DB" C-m
 fi
