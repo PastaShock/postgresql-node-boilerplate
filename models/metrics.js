@@ -77,8 +77,6 @@ const getUnitsByPrinter = (req, res) => {
     GROUP BY
         p.equip_id;
     `
-    // jo.job_id
-    // JOIN job_orders jo ON (jo.order_id = o.order_id)
     // append id to the query as we won't know otherwise what the API request was for
     log.dbquery = `${query}`
     db.query(query, (error, result) => {
@@ -99,13 +97,264 @@ const getUnitsByPrinter = (req, res) => {
             // log successful access to file
             logHandler(log)
             // return success status and result
-            // I could append a sub-object to the return object to have a nested data structure
-            // with more data and not interfere with the important data.
-            // I want to include jobs and information about each job in the return
-            // let query = 'SELECT * FROM jobs JOIN job_orders jo ON (jobs.job_id = jo.job_id) JOIN orders o ON (jo.order_id = o.order_id) WHERE o.order_id = $1'
-            // let jobs = db.query(query, id, (error, result) => {
-                // res.status(200).json.(result.rows)
-            // })
+            res.status(200).json(result.rows)
+        }
+    } )
+}
+
+const getOrdersByUsers = (req, res) => {
+    // set log params
+    log.source = 'getOrdersByUsers'
+    log.request = req
+    // query is static, we just need one order_id
+    let query = `
+    SELECT
+        count(o.order_id) as total_orders,
+        u.name AS user_name
+    FROM
+        orders o
+    JOIN
+        job_orders jo ON (o.order_id = jo.order_id)
+    JOIN
+        jobs j ON (jo.job_id = j.job_id)
+    JOIN
+        users u ON (j.print_user = u.user_id)
+    WHERE
+        u.name = u.name
+    GROUP BY
+        u.name;
+    `
+    // append id to the query as we won't know otherwise what the API request was for
+    log.dbquery = `${query}`
+    db.query(query, (error, result) => {
+        if (error) {
+            // set log error params and log to file
+            log.loglevel = 'severe'
+            log.error = error
+            logHandler(log)
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            // set params for non-fatal error and log to file
+            log.error = `error: invalid request`
+            log.loglevel = 'alert'
+            logHandler(log)
+            res.status(404).send('404')
+        } else {
+            // log successful access to file
+            logHandler(log)
+            // return success status and result
+            res.status(200).json(result.rows)
+        }
+    } )
+}
+
+const getOrdersByUserID= (req, res) => {
+    const id = req.params.id
+    // set log params
+    log.source = 'getOrdersByUserID'
+    log.request = req
+    // query is static, we just need one order_id
+    let query = `
+    SELECT
+        count(o.order_id) as total_orders,
+        u.name AS user_name
+    FROM
+        orders o
+    JOIN
+        job_orders jo ON (o.order_id = jo.order_id)
+    JOIN
+        jobs j ON (jo.job_id = j.job_id)
+    JOIN
+        users u ON (j.print_user = u.user_id)
+    WHERE
+        u.user_id = $1
+    GROUP BY
+        u.name;
+    `
+    // append id to the query as we won't know otherwise what the API request was for
+    log.dbquery = `${query}`
+    db.query(query, [id], (error, result) => {
+        if (error) {
+            // set log error params and log to file
+            log.loglevel = 'severe'
+            log.error = error
+            logHandler(log)
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            // set params for non-fatal error and log to file
+            log.error = `error: invalid request`
+            log.loglevel = 'alert'
+            logHandler(log)
+            res.status(404).send('404')
+        } else {
+            // log successful access to file
+            logHandler(log)
+            // return success status and result
+            res.status(200).json(result.rows)
+        }
+    } )
+}
+
+const getUnitsByUserByDay = (req, res) => {
+    const id = req.params.id
+    const date = req.params.date
+    // set log params
+    log.source = 'getUnitsByUserByDay'
+    log.request = req
+    // query is static, we just need one order_id
+    let query = `
+    SELECT
+        SUM(o.logo_count_digital) + SUM(o.logo_count_digital_small) as total_units,
+        u.name AS user_name
+    FROM
+        orders o
+    JOIN
+        job_orders jo ON (o.order_id = jo.order_id)
+    JOIN
+        jobs j ON (jo.job_id = j.job_id)
+    JOIN
+        users u ON (j.print_user = u.user_id)
+    WHERE
+        u.user_id = $1
+        AND
+        CAST(j.date_printed AS DATE) = $2
+    GROUP BY
+        u.name;
+    `
+    // append id to the query as we won't know otherwise what the API request was for
+    log.dbquery = `${query}`
+    db.query(query, [id, date], (error, result) => {
+        if (error) {
+            // set log error params and log to file
+            log.loglevel = 'severe'
+            log.error = error
+            logHandler(log)
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            // set params for non-fatal error and log to file
+            log.error = `error: invalid request`
+            log.loglevel = 'alert'
+            logHandler(log)
+            res.status(404).send('404')
+        } else {
+            // log successful access to file
+            logHandler(log)
+            // return success status and result
+            res.status(200).json(result.rows)
+        }
+    } )
+}
+const getJobsByDay = (req, res) => {
+    var date = req.params.date
+    // set log params
+    log.source = 'getJobsByDay'
+    log.request = req
+    // query is static, we just need one order_id
+    let query = `
+    SELECT
+        o.order_id,
+        u.name AS user_name,
+        j.job_id,
+        j.date_printed,
+        j.date_downloaded
+    FROM
+        jobs j
+    JOIN
+        job_orders jo ON (jo.job_id = j.job_id)
+    JOIN
+        orders o ON (jo.order_id = o.order_id)
+    JOIN
+        users u ON (j.print_user = u.user_id)
+    WHERE
+        CAST(j.date_printed AS DATE) = $1
+    GROUP BY
+        j.job_id,
+        o.order_id,
+        u.name
+    `
+    // append id to the query as we won't know otherwise what the API request was for
+    log.dbquery = `${query}`
+    dateParam = Date.parse(date)
+    console.log(`dateParam: ${dateParam} :: typeOf: ${typeof(dateParam)}`)
+    if (typeof(dateParam) != 'number') {
+        console.log(`dateParam is not type of number :: ${typeof(dateParam)}\nsetting to fallback val`)
+        date = '2024-01-01';
+    }
+    db.query(query, [date], (error, result) => {
+        if (error) {
+            // set log error params and log to file
+            log.loglevel = 'severe'
+            log.error = error
+            logHandler(log)
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            // set params for non-fatal error and log to file
+            log.error = `error: invalid request`
+            log.loglevel = 'alert'
+            logHandler(log)
+            res.status(404).send('404')
+        } else {
+            // log successful access to file
+            logHandler(log)
+            // return success status and result
+            res.status(200).json(result.rows)
+        }
+    } )
+}
+
+const getOrdersByDay = (req, res) => {
+    var date = req.params.date
+    // set log params
+    log.source = 'getOrdersByDay'
+    log.request = req
+    // query is static, we just need one order_id
+    let query = `
+    SELECT
+        COUNT(o.order_id) AS count_orders,
+        u.name AS user_name
+    FROM
+        orders o
+    JOIN
+        job_orders jo ON (jo.order_id = o.order_id)
+    JOIN
+        jobs j ON (jo.job_id = j.job_id)
+    JOIN
+        users u ON (j.print_user = u.user_id)
+    WHERE
+        CAST(j.date_printed AS DATE) = $1
+    GROUP BY
+        u.name
+    `
+    // append id to the query as we won't know otherwise what the API request was for
+    log.dbquery = `${query}`
+    dateParam = Date.parse(date)
+    console.log(`dateParam: ${dateParam} :: typeOf: ${typeof(dateParam)}`)
+    if (typeof(dateParam) != 'number') {
+        console.log(`dateParam is not type of number :: ${typeof(dateParam)}\nsetting to fallback val`)
+        date = '2024-01-01';
+    }
+    db.query(query, [date], (error, result) => {
+        if (error) {
+            // set log error params and log to file
+            log.loglevel = 'severe'
+            log.error = error
+            logHandler(log)
+            throw error
+        }
+        if (result.rows.length == '' ) {
+            // set params for non-fatal error and log to file
+            log.error = `error: invalid request`
+            log.loglevel = 'alert'
+            logHandler(log)
+            res.status(404).send('404')
+        } else {
+            // log successful access to file
+            logHandler(log)
+            // return success status and result
             res.status(200).json(result.rows)
         }
     } )
@@ -113,5 +362,10 @@ const getUnitsByPrinter = (req, res) => {
 
 module.exports = {
     getOrdersByPrinter,
-    getUnitsByPrinter
+    getUnitsByPrinter,
+    getOrdersByUsers,
+    getOrdersByUserID,
+    getUnitsByUserByDay,
+    getJobsByDay,
+    getOrdersByDay
 }
